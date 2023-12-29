@@ -49,19 +49,21 @@ fun TopBar(viewModel: CashbookViewModel, onBinClick:()->Unit){
             horizontalArrangement = Arrangement.SpaceBetween) {
             Row(horizontalArrangement = Arrangement.Start,
                 modifier = Modifier
+                    .weight(7f)
                     .padding(start = 20.dp, top = 10.dp)
             ) {
                 Text(text = viewModel.cashbookName.value, fontSize = 20.sp)
             }
 
-            OutlinedButton(onClick = {
+            OutlinedButton(
+                modifier = Modifier.weight(3f),
+                onClick = {
                 onBinClick()
             }) {
                 Icon(
                     imageVector = Icons.Outlined.RestoreFromTrash,
                     contentDescription = "Bin",
-                    tint = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.size(24.dp)
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = "Bin",

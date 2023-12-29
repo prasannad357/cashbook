@@ -82,7 +82,7 @@ fun CompareScreen(
                                          "Amount: $amount, maxValue: $maxValue" )
                                  Text(text = "$cashbookName",
                                      overflow = TextOverflow.Ellipsis,
-                                     modifier = Modifier.weight(0.2f),
+                                     modifier = Modifier.weight(0.5f),
                                      color = textColor,
                                      fontSize = 12.sp
                                  )
@@ -90,15 +90,16 @@ fun CompareScreen(
                                  Log.d("CompareScreen", "Spacer size: $sizeOfSpacer")
 
                                  Spacer(modifier = Modifier
-//                                     .fillMaxWidth(sizeOfSpacer.toFloat())
-                                     .weight(sizeOfSpacer.toFloat())
+                                     .weight(0.5f, false)
+                                     .fillMaxWidth(sizeOfSpacer.toFloat())
+//                                     .width(sizeOfSpacer.dp)
                                      .height(15.dp)
                                      .background(color = Color(viewModel.getColor())))
 
                                  Spacer(modifier = Modifier.width(5.dp))
                                  Text(text = "Rs. $amount",
                                      overflow = TextOverflow.Ellipsis,
-                                     modifier = Modifier.weight(0.2f),
+                                     modifier = Modifier.weight(0.3f),
                                      textAlign = TextAlign.Center,
                                      color = textColor,
                                      fontSize = 12.sp
