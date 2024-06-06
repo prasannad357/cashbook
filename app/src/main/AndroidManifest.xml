@@ -16,7 +16,6 @@
         <activity
             android:name=".feature_cashbook.presentation.MainActivity"
             android:exported="true"
-            android:label="@string/app_name"
             android:theme="@style/Theme.Cashbook">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
