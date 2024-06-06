@@ -4,13 +4,11 @@ import android.os.Build
 import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -31,6 +29,7 @@ import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Reorder
+import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -49,13 +48,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
-import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.prasanna.cashbook.feature_cashbook.domain.model.Cashbook
@@ -125,49 +122,50 @@ fun CashbookListScreen(
                         cashbook.id!!
                     }
                 ){ cashbook: Cashbook ->
+                    if(cashbook.id != 1){
+                        CashbookListItem(cashbook = cashbook,
+                            modifier = Modifier
+                                .animateItemPlacement(tween(250, easing = LinearOutSlowInEasing))
+                                .clickable {
+                                    if (state.isCompareMultiSelectActive) {
+                                        if (state.selectedCashbooks.contains(cashbook.id)) {
+                                            val ids: ArrayList<Int> = ArrayList<Int>()
+                                            ids.addAll(state.selectedCashbooks)
+                                            ids.remove(cashbook.id)
+                                            viewModel.onEvent(
+                                                CashbookListEvent
+                                                    .SelectedCashbooks(
+                                                        ids
+                                                    )
+                                            )
+                                        } else {
+                                            val ids: ArrayList<Int> = ArrayList<Int>()
+                                            ids.addAll(state.selectedCashbooks)
+                                            cashbook.id?.let { cId -> ids.add(cId) }
+                                            viewModel.onEvent(
+                                                CashbookListEvent
+                                                    .SelectedCashbooks(
+                                                        ids
+                                                    )
+                                            )
+                                        }
 
-                    CashbookListItem(cashbook = cashbook,
-                        modifier = Modifier
-                            .animateItemPlacement(tween(250, easing = LinearOutSlowInEasing))
-                            .clickable {
-                                if (state.isCompareMultiSelectActive) {
-                                    if (state.selectedCashbooks.contains(cashbook.id)) {
-                                        val ids: ArrayList<Int> = ArrayList<Int>()
-                                        ids.addAll(state.selectedCashbooks)
-                                        ids.remove(cashbook.id)
-                                        viewModel.onEvent(
-                                            CashbookListEvent
-                                                .SelectedCashbooks(
-                                                    ids
-                                                )
-                                        )
                                     } else {
-                                        val ids: ArrayList<Int> = ArrayList<Int>()
-                                        ids.addAll(state.selectedCashbooks)
-                                        cashbook.id?.let { cId -> ids.add(cId) }
-                                        viewModel.onEvent(
-                                            CashbookListEvent
-                                                .SelectedCashbooks(
-                                                    ids
-                                                )
+                                        Log.d(TAG, "CashbookId = ${cashbook.id}")
+                                        navController.navigate(
+                                            Screen.CashbookScreen.route +
+                                                    "?cashbookId=${cashbook.id}"
                                         )
                                     }
-
-                                } else {
-                                    Log.d(TAG, "CashbookId = ${cashbook.id}")
-                                    navController.navigate(
-                                        Screen.CashbookScreen.route +
-                                                "?cashbookId=${cashbook.id}"
-                                    )
-                                }
+                                },
+                            onDeleteCashbook = {
+                                viewModel.onEvent(CashbookListEvent.DeleteCashbook(cashbook))
                             },
-                        onDeleteCashbook = {
-                            viewModel.onEvent(CashbookListEvent.DeleteCashbook(cashbook))
-                        },
-                        isSelected = state.selectedCashbooks.contains(cashbook.id)
+                            isSelected = state.selectedCashbooks.contains(cashbook.id)
                         )
-                    
-                    Spacer(modifier = Modifier.height(10.dp))
+
+                        Spacer(modifier = Modifier.height(10.dp))
+                    }
                 }
             }
             if(state.isAddCashbookPopupVisible){
@@ -187,7 +185,7 @@ fun TopBar(viewModel: CashbookListViewModel, navController: NavController){
         if(viewModel.state.value.isCompareMultiSelectActive){
             MultiSelectTopBar(viewModel = viewModel, navController = navController)
         }else{
-            GeneralTopBar(viewModel = viewModel)
+            GeneralTopBar(viewModel = viewModel, navController = navController)
         }
 
     }
@@ -243,11 +241,21 @@ fun MultiSelectTopBar(viewModel: CashbookListViewModel,
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun GeneralTopBar(viewModel:CashbookListViewModel){
+fun GeneralTopBar(viewModel: CashbookListViewModel, navController: NavController){
     Row(modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically) {
         Text(text = "Cashbooks", fontSize = 20.sp,
             modifier = Modifier.weight(3f))
+
+        IconButton(onClick = {
+            navController.navigate(
+                Screen.CashbookScreen.route +
+                        "?cashbookId=${1}"
+            )
+        }) {
+            Icon(imageVector = Icons.Default.Repeat, contentDescription = "Compare cashbooks",
+                modifier = Modifier.weight(0.5f))
+        }
 
         IconButton(onClick = {
             viewModel.onEvent(CashbookListEvent.ToggleCompareMultiSelect)

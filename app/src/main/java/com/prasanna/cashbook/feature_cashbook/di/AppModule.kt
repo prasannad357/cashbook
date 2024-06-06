@@ -9,6 +9,7 @@ import com.prasanna.cashbook.feature_cashbook.domain.repository.CashbookReposito
 import com.prasanna.cashbook.feature_cashbook.domain.repository.TransactionRepository
 import com.prasanna.cashbook.feature_cashbook.domain.use_case.AddCashbook
 import com.prasanna.cashbook.feature_cashbook.domain.use_case.AddTransaction
+import com.prasanna.cashbook.feature_cashbook.domain.use_case.AddTransactions
 import com.prasanna.cashbook.feature_cashbook.domain.use_case.CashbookUseCases
 import com.prasanna.cashbook.feature_cashbook.domain.use_case.DeleteCashbook
 import com.prasanna.cashbook.feature_cashbook.domain.use_case.DeleteTransaction
@@ -60,7 +61,8 @@ object AppModule {
             addTransaction = AddTransaction(tRepository),
             deleteTransaction = DeleteTransaction(tRepository),
             getTransactionByCashbookId = GetTransactionByCashbookId(tRepository),
-            getTransactionsInBin = GetTransactionsInBin(tRepository)
+            getTransactionsInBin = GetTransactionsInBin(tRepository),
+            addTransactions = AddTransactions(tRepository)
         )
     }
 }

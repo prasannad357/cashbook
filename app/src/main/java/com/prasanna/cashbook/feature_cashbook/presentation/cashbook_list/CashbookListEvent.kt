@@ -10,6 +10,7 @@ sealed class CashbookListEvent {
     data class AddCashbookTags(val tags:List<String>):CashbookListEvent()
     data class SelectedCashbooks(val cashbookIds:List<Int>):CashbookListEvent()
     object AddCashbook:CashbookListEvent()
+
     object RestoreCashbook:CashbookListEvent()
     object ToggleOrderSection:CashbookListEvent()
     object ToggleAddCashbookPopup:CashbookListEvent()

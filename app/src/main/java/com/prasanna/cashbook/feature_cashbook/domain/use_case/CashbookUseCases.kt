@@ -8,5 +8,6 @@ data class CashbookUseCases(
     val addTransaction: AddTransaction,
     val deleteTransaction: DeleteTransaction,
     val getTransactionByCashbookId: GetTransactionByCashbookId,
-    val getTransactionsInBin: GetTransactionsInBin
+    val getTransactionsInBin: GetTransactionsInBin,
+    val addTransactions: AddTransactions
 )

@@ -20,6 +20,7 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
 
+@RequiresApi(Build.VERSION_CODES.O)
 @HiltViewModel
 class CashbookListViewModel @Inject constructor(val cashbookUseCases: CashbookUseCases):ViewModel() {
     private val TAG = "CashbookListViewModel"
@@ -37,12 +38,34 @@ class CashbookListViewModel @Inject constructor(val cashbookUseCases: CashbookUs
     private var getCashbooksJob:Job? = null
     init {
         getCashbooks(CashbookOrder.LastEdit(OrderType.Descending))
+        var repeatTransactionsBookExists = false
+        _state.value.cashbooks.forEach {
+            if(it.name == "Repeat Transactions" && it.id == 1){
+                repeatTransactionsBookExists = true
+            }
+        }
+        if(!repeatTransactionsBookExists){
+            viewModelScope.launch {
+                try {
+                    val cashbook = Cashbook(
+                        id = 1,
+                        name = "Repeat Transactions",
+                        tags = emptyList(),
+                        createdTimeStamp = System.currentTimeMillis(),
+                        lastEditTimeStamp = System.currentTimeMillis(),
+                        createdDate = LocalDate.now()
+                    )
+                    cashbookUseCases.addCashbook(cashbook)
+                }catch (ex:InvalidCashbookException){
+                    Log.e(TAG, ex.message.toString())
+                }
+            }
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun onEvent(event:CashbookListEvent){
         when(event){
-
             is CashbookListEvent.AddCashbookName ->{
                 _name.value = event.name
             }

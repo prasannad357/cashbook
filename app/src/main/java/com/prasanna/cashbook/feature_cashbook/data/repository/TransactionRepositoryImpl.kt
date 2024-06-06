@@ -12,6 +12,10 @@ class TransactionRepositoryImpl (private val dao:TransactionDao):TransactionRepo
         return dao.addTransaction(transaction)
     }
 
+    override suspend fun addTransactions(transactionList: List<Transaction>) {
+        return dao.addTransactions(transactionList)
+    }
+
     override suspend fun deleteTransaction(transaction: Transaction) {
         return dao.deleteTransaction(transaction = transaction)
     }

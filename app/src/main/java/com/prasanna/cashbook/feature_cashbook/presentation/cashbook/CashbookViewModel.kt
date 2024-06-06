@@ -3,6 +3,7 @@ package com.prasanna.cashbook.feature_cashbook.presentation.cashbook
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -53,8 +54,6 @@ class CashbookViewModel @Inject constructor(private val cashbookUseCases:Cashboo
     private val _remark = mutableStateOf("")
     val remark:State<String> = _remark
 
-    private val _eventFlow = MutableSharedFlow<UiEvents>()
-    val eventFlow:SharedFlow<UiEvents> = _eventFlow.asSharedFlow()
 
     private val _cashbookName = mutableStateOf<String>("")
     val cashbookName:State<String> = _cashbookName
@@ -65,15 +64,17 @@ class CashbookViewModel @Inject constructor(private val cashbookUseCases:Cashboo
     private val _createdOn = mutableStateOf<LocalDate?>(null)
     val createdOn:State<LocalDate?> = _createdOn
 
-    private val _addTransactionPopupShown = mutableStateOf(false)
+    private var _addTransactionPopupShown = mutableStateOf(false)
     val addTransactionPopupShown:State<Boolean> = _addTransactionPopupShown
 
     private val _editTransactionPopupShown = mutableStateOf<Transaction?>(null)
     val editTransactionPopupShown:State<Transaction?> = _editTransactionPopupShown
 
     private var getTransactionsJob: Job? = null
+    private var getRepeatTransactionsJob: Job? = null
     private var getBinTransactionsJob:Job? = null
 
+    private val _repeatTransactions = mutableStateOf<List<Transaction>>(mutableListOf())
     private val _transactions = mutableStateOf<List<Transaction>>(mutableListOf())
     val transactions:State<List<Transaction>> = _transactions
     private var _id:Int? = null
@@ -86,11 +87,16 @@ class CashbookViewModel @Inject constructor(private val cashbookUseCases:Cashboo
     private val _toggleDeleteTopBar = mutableStateOf<List<Transaction>?>(null)
     val toggleDeleteTopBar:State<List<Transaction>?> = _toggleDeleteTopBar
 
+    private val _toggleRepeatTransactionsPopup = mutableStateOf(false)
+    val toggleRepeatTransactionsPopup:State<Boolean> = _toggleRepeatTransactionsPopup
+
+
     init {
         savedStateHandle.get<Int>("cashbookId")?.let{
             viewModelScope.launch {
                 _id = it
                 val cashbook = cashbookUseCases.getCashbookById(id = it)
+
                 Log.d(TAG, "CashbookId: $it, Cashbook: $cashbook")
                 _cashbookName.value = cashbook.name
                 _cashbookTags.value = cashbook.tags
@@ -101,6 +107,8 @@ class CashbookViewModel @Inject constructor(private val cashbookUseCases:Cashboo
                 _createdDate = cashbook.createdDate
                 _createdOn.value = cashbook.createdDate
                 getTransactionsInBin(it)
+                getRepeatTransactions()
+                Log.d(TAG, "Prasanna: ${_repeatTransactions.value} ")
 
             }
         }
@@ -209,12 +217,27 @@ class CashbookViewModel @Inject constructor(private val cashbookUseCases:Cashboo
 //
 //                }
             }
+
+            CashbookEvent.AddRepeatTransactions -> {
+                _repeatTransactions.value.forEach {
+                    val currentTime = System.currentTimeMillis()
+                    val transaction = Transaction(
+                        date = LocalDate.now(),
+                        amount = it.amount, isCredit = it.isCredit,
+                        createdAt = currentTime, updatedAt = currentTime,
+                        tags = it.tags, remark = it.remark, cashbookId = _id!!,
+                        cashbookName = _cashbookName.value)
+                    viewModelScope.launch {
+                        cashbookUseCases.addTransaction(transaction)
+                    }
+                }
+
+            }
+
+            CashbookEvent.ToggleRepeatTransactionPopup -> {
+                _toggleRepeatTransactionsPopup.value = !_toggleRepeatTransactionsPopup.value
+            }
         }
-    }
-    sealed class UiEvents(){
-        //It's a way for view model to request UI changes (view model speaking to screens),
-        // whereas normal Events is a way for Ui (screens) to speak to view model
-        data class SaveCashbook(private val cashbook: Cashbook):UiEvents()
     }
 
     private fun getTransactionsByCashbookId(cashbookId:Int){
@@ -223,6 +246,15 @@ class CashbookViewModel @Inject constructor(private val cashbookUseCases:Cashboo
         getTransactionsJob = cashbookUseCases
             .getTransactionByCashbookId(cashbookId).onEach { transactionList ->
                 _transactions.value = transactionList
+            }.launchIn(viewModelScope)
+    }
+
+    private fun getRepeatTransactions(){
+        getRepeatTransactionsJob?.cancel()
+
+        getRepeatTransactionsJob = cashbookUseCases
+            .getTransactionByCashbookId(1).onEach { transactionList ->
+                _repeatTransactions.value = transactionList
             }.launchIn(viewModelScope)
     }
 

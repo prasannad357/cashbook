@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.prasanna.cashbook.feature_cashbook.presentation.cashbook.component.BinDrawer
+import com.prasanna.cashbook.feature_cashbook.presentation.cashbook.component.InsertRepeatTransactions
 import com.prasanna.cashbook.feature_cashbook.presentation.cashbook.component.TopBar
 import com.prasanna.cashbook.feature_cashbook.presentation.cashbook.component.TransactionItem
 import com.prasanna.cashbook.feature_cashbook.presentation.cashbook.component.TransactionPopup
@@ -164,6 +165,10 @@ fun CashbookScreen(
                                 viewModel = viewModel,
                                 transaction = viewModel.editTransactionPopupShown.value
                             )
+                        }
+
+                        if(viewModel.toggleRepeatTransactionsPopup.value){
+                            InsertRepeatTransactions(cashbookViewModel = viewModel)
                         }
 
                     }

@@ -20,8 +20,10 @@ sealed class CashbookEvent {
     data class PermanentlyDeleteTransaction(val transaction: Transaction):CashbookEvent()
     data class ToggleDeleteTopBar(val transactionList:List<Transaction>):CashbookEvent()
 
+    object AddRepeatTransactions:CashbookEvent()
     object PermanentlyDeleteAllTransactions:CashbookEvent()
     object SaveCashbook:CashbookEvent()
     object ToggleCreditDebit:CashbookEvent()
     object ToggleAddTransactionPopup:CashbookEvent()
+    object ToggleRepeatTransactionPopup:CashbookEvent()
 }
