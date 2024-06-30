@@ -84,8 +84,8 @@ fun CashbookScreen(
                         FloatingActionButton(onClick = {
                             viewModel.onEvent(CashbookEvent.ToggleAddTransactionPopup)
                         },
-                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer
+                            contentColor = MaterialTheme.colorScheme.onTertiary,
+                            containerColor = MaterialTheme.colorScheme.tertiary
                             ) {
                             if(viewModel.addTransactionPopupShown.value){
                                 Icon(imageVector = Icons.Default.Close, contentDescription = "Close popup")

@@ -74,7 +74,7 @@ class CashbookViewModel @Inject constructor(private val cashbookUseCases:Cashboo
     private var getRepeatTransactionsJob: Job? = null
     private var getBinTransactionsJob:Job? = null
 
-    private val _repeatTransactions = mutableStateOf<List<Transaction>>(mutableListOf())
+    private val _repeatTransactions = mutableStateOf<List<Transaction>>(emptyList())
     private val _transactions = mutableStateOf<List<Transaction>>(mutableListOf())
     val transactions:State<List<Transaction>> = _transactions
     private var _id:Int? = null
@@ -108,7 +108,6 @@ class CashbookViewModel @Inject constructor(private val cashbookUseCases:Cashboo
                 _createdOn.value = cashbook.createdDate
                 getTransactionsInBin(it)
                 getRepeatTransactions()
-                Log.d(TAG, "Prasanna: ${_repeatTransactions.value} ")
 
             }
         }

@@ -82,8 +82,8 @@ fun CashbookListScreen(
             FloatingActionButton(onClick = {
                 viewModel.onEvent(CashbookListEvent.ToggleAddCashbookPopup)
             },
-                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                containerColor = MaterialTheme.colorScheme.secondaryContainer
+                contentColor = MaterialTheme.colorScheme.onTertiary,
+                containerColor = MaterialTheme.colorScheme.tertiary
                 ) {
                 if(state.isAddCashbookPopupVisible){
                     Icon(imageVector = Icons.Default.Close,
