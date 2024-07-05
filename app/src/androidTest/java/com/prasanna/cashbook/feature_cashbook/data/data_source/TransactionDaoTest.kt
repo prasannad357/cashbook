@@ -6,11 +6,13 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
 import app.cash.turbine.test
+import com.prasanna.cashbook.feature_cashbook.common.MainDispatcherRule
 import com.prasanna.cashbook.feature_cashbook.domain.model.Transaction
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.time.LocalDate
@@ -21,6 +23,8 @@ class TransactionDaoTest {
     lateinit var db:CashbookDatabase
     lateinit var dao:TransactionDao
 
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule()
     @Before
     fun setup(){
         val context = ApplicationProvider.getApplicationContext<Context>()
