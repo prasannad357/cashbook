@@ -15,11 +15,11 @@ interface CashbookDao {
     fun getCashbooks(): Flow<List<Cashbook>>
 
     @Query("SELECT * FROM cashbook WHERE id=:id")
-    suspend fun getCashbookById(id:Int):Cashbook
+    fun getCashbookById(id:Int):Cashbook
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun addCashbook(cashbook: Cashbook)
+    fun addCashbook(cashbook: Cashbook)
 
     @Delete
-    suspend fun deleteCashbook(cashbook: Cashbook)
+    fun deleteCashbook(cashbook: Cashbook)
 }
