@@ -16,13 +16,16 @@ import com.prasanna.cashbook.feature_cashbook.domain.model.Cashbook
 import com.prasanna.cashbook.feature_cashbook.domain.model.Transaction
 import com.prasanna.cashbook.feature_cashbook.domain.use_case.CashbookUseCases
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.time.LocalDate
 import javax.inject.Inject
@@ -34,9 +37,10 @@ class CashbookViewModel @Inject constructor(private val cashbookUseCases:Cashboo
                                             ):ViewModel() {
     private val TAG = "CashbookViewModel"
 
-    private val _state = cashbookUseCases.getCashbooks
+    private val _cashbookState = mutableStateOf(CashbookState())
+    val cashbookState:State<CashbookState> = _cashbookState
 
-    private val _balance = mutableStateOf(0.toBigDecimal())
+    private val _balance = mutableStateOf(0.toBigDecimal()) //TODO: Remove after checking its use
     var balance = _balance
 
     private val _date = mutableStateOf<LocalDate>(LocalDate.now())
@@ -54,16 +58,6 @@ class CashbookViewModel @Inject constructor(private val cashbookUseCases:Cashboo
     private val _remark = mutableStateOf("")
     val remark:State<String> = _remark
 
-
-    private val _cashbookName = mutableStateOf<String>("")
-    val cashbookName:State<String> = _cashbookName
-
-    private val _cashbookTags = mutableStateOf<List<String>>(listOf(""))
-    val cashbookTags:State<List<String>> = _cashbookTags
-
-    private val _createdOn = mutableStateOf<LocalDate?>(null)
-    val createdOn:State<LocalDate?> = _createdOn
-
     private var _addTransactionPopupShown = mutableStateOf(false)
     val addTransactionPopupShown:State<Boolean> = _addTransactionPopupShown
 
@@ -78,8 +72,6 @@ class CashbookViewModel @Inject constructor(private val cashbookUseCases:Cashboo
     private val _transactions = mutableStateOf<List<Transaction>>(mutableListOf())
     val transactions:State<List<Transaction>> = _transactions
     private var _id:Int? = null
-    private var _cashbookCreatedTimeStamp:Long? = null
-    private var _createdDate:LocalDate? = null
 
     private val _transactionsInBin = mutableStateOf<List<Transaction>>(mutableListOf())
     val transactionsInBin:State<List<Transaction>> = _transactionsInBin
@@ -93,19 +85,25 @@ class CashbookViewModel @Inject constructor(private val cashbookUseCases:Cashboo
 
     init {
         savedStateHandle.get<Int>("cashbookId")?.let{
-            viewModelScope.launch {
+            viewModelScope.launch(Dispatchers.IO) {
+
                 _id = it
                 val cashbook = cashbookUseCases.getCashbookById(id = it)
 
                 Log.d(TAG, "CashbookId: $it, Cashbook: $cashbook")
-                _cashbookName.value = cashbook.name
-                _cashbookTags.value = cashbook.tags
-                _cashbookCreatedTimeStamp = cashbook.createdTimeStamp
-                Log.d(TAG, "Fetching transactions...")
-                getTransactionsByCashbookId(it)
-                Log.d(TAG, "Fetched transactions: ${_transactions.value}")
-                _createdDate = cashbook.createdDate
-                _createdOn.value = cashbook.createdDate
+                withContext(Dispatchers.Main){
+                    _cashbookState.value = _cashbookState.value.copy(
+                        cbName = cashbook.name,
+                        cbTags = cashbook.tags,
+                        createdTimeStamp = cashbook.createdTimeStamp,
+                        createdDate = cashbook.createdDate,
+                        createdOn = cashbook.createdDate
+                    )
+
+                    Log.d(TAG, "Fetching transactions...")
+                    getTransactionsByCashbookId(it)
+                    Log.d(TAG, "Fetched transactions: ${_transactions.value}")
+                }
                 getTransactionsInBin(it)
                 getRepeatTransactions()
 
@@ -136,40 +134,41 @@ class CashbookViewModel @Inject constructor(private val cashbookUseCases:Cashboo
                     amount = _amount.value, isCredit = isCredit.value,
                     createdAt = currentTime, updatedAt = currentTime,
                     tags = _tags.value, remark = _remark.value, cashbookId = _id!!,
-                    cashbookName = _cashbookName.value)
-                viewModelScope.launch {
+                    cashbookName = cashbookState.value.cbName)
+                viewModelScope.launch(Dispatchers.IO) {
                     cashbookUseCases.addTransaction(transaction)
                 }
             }
             is CashbookEvent.EditCashbookName -> {
                 //Similar to whatsapp edit group name (just use popup)
-                _cashbookName.value = event.name
+                _cashbookState.value = _cashbookState.value.copy(cbName = event.name)
             }
 
             is CashbookEvent.EditCashbookTags ->{
                 //Similar to whatsapp edit group name (just use popup)
-                _cashbookTags.value = event.tags
+                _cashbookState.value = _cashbookState.value.copy(cbTags = event.tags)
             }
             is CashbookEvent.SaveCashbook -> {
                 //Ideally, remove this condition, save cashbook in add expense option
-                viewModelScope.launch {
+                viewModelScope.launch(Dispatchers.IO) {
                     //Handle Adding new cashbook or editing the cashbook
                     Log.d(TAG, "Transactions at the time of adding: ${transactions.value}")
                     val mCashbook = Cashbook(
-                        name = cashbookName.value,
-                        tags = cashbookTags.value,
-                        createdTimeStamp = _cashbookCreatedTimeStamp!!,
+                        name = cashbookState.value.cbName,
+                        tags = cashbookState.value.cbTags,
+                        createdTimeStamp = cashbookState.value.createdTimeStamp,
                         lastEditTimeStamp = System.currentTimeMillis(),
                         id = _id,
-                        createdDate = _createdDate!!
+                        createdDate = cashbookState.value.createdDate
                         )
                     Log.d(TAG, "Adding cashbook: $mCashbook")
+
                     cashbookUseCases.addCashbook(mCashbook)
                 }
             }
 
             is CashbookEvent.DeleteTransaction -> {
-                viewModelScope.launch {
+                viewModelScope.launch(Dispatchers.IO) {
                     cashbookUseCases.addTransaction(event
                         .transaction.copy(inBin = true))
                 }
@@ -188,20 +187,20 @@ class CashbookViewModel @Inject constructor(private val cashbookUseCases:Cashboo
             }
 
             is CashbookEvent.RestoreTransaction -> {
-                viewModelScope.launch {
+                viewModelScope.launch(Dispatchers.IO) {
                     cashbookUseCases
                         .addTransaction(event.transaction.copy(inBin = false))
                 }
             }
 
             is CashbookEvent.PermanentlyDeleteTransaction -> {
-                viewModelScope.launch {
+                viewModelScope.launch(Dispatchers.IO) {
                     cashbookUseCases.deleteTransaction(event.transaction)
                 }
             }
 
             is CashbookEvent.PermanentlyDeleteAllTransactions -> {
-                viewModelScope.launch {
+                viewModelScope.launch(Dispatchers.IO) {
                     _transactionsInBin.value.forEach {
                         cashbookUseCases.deleteTransaction(it)
                     }
@@ -225,8 +224,8 @@ class CashbookViewModel @Inject constructor(private val cashbookUseCases:Cashboo
                         amount = it.amount, isCredit = it.isCredit,
                         createdAt = currentTime, updatedAt = currentTime,
                         tags = it.tags, remark = it.remark, cashbookId = _id!!,
-                        cashbookName = _cashbookName.value)
-                    viewModelScope.launch {
+                        cashbookName = cashbookState.value.cbName)
+                    viewModelScope.launch(Dispatchers.IO) {
                         cashbookUseCases.addTransaction(transaction)
                     }
                 }
@@ -245,7 +244,7 @@ class CashbookViewModel @Inject constructor(private val cashbookUseCases:Cashboo
         getTransactionsJob = cashbookUseCases
             .getTransactionByCashbookId(cashbookId).onEach { transactionList ->
                 _transactions.value = transactionList
-            }.launchIn(viewModelScope)
+            }.flowOn(Dispatchers.IO).launchIn(viewModelScope)
     }
 
     private fun getRepeatTransactions(){
@@ -254,7 +253,7 @@ class CashbookViewModel @Inject constructor(private val cashbookUseCases:Cashboo
         getRepeatTransactionsJob = cashbookUseCases
             .getTransactionByCashbookId(1).onEach { transactionList ->
                 _repeatTransactions.value = transactionList
-            }.launchIn(viewModelScope)
+            }.flowOn(Dispatchers.IO).launchIn(viewModelScope)
     }
 
     private fun getTransactionsInBin(cashbookId:Int){
@@ -263,7 +262,7 @@ class CashbookViewModel @Inject constructor(private val cashbookUseCases:Cashboo
         getBinTransactionsJob = cashbookUseCases
             .getTransactionsInBin(cashbookId).onEach {
                 _transactionsInBin.value = it
-            }.launchIn(viewModelScope)
+            }.flowOn(Dispatchers.IO).launchIn(viewModelScope)
     }
 
 }

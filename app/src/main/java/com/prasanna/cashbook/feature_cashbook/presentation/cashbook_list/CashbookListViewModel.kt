@@ -13,10 +13,14 @@ import com.prasanna.cashbook.feature_cashbook.domain.use_case.CashbookUseCases
 import com.prasanna.cashbook.feature_cashbook.presentation.util.CashbookOrder
 import com.prasanna.cashbook.feature_cashbook.presentation.util.OrderType
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import javax.inject.Inject
 
@@ -55,11 +59,19 @@ class CashbookListViewModel @Inject constructor(val cashbookUseCases: CashbookUs
                         lastEditTimeStamp = System.currentTimeMillis(),
                         createdDate = LocalDate.now()
                     )
-                    cashbookUseCases.addCashbook(cashbook)
+                    withContext(Dispatchers.IO){
+                        cashbookUseCases.addCashbook(cashbook)
+                    }
                 }catch (ex:InvalidCashbookException){
                     Log.e(TAG, ex.message.toString())
                 }
             }
+        }
+
+        viewModelScope.launch{
+            val mInt1 = temp1(5000L)
+            val mInt2 = temp1(1000L)
+            Log.d("temp1","Addition: ${mInt1+mInt2}")
         }
     }
 
@@ -86,7 +98,9 @@ class CashbookListViewModel @Inject constructor(val cashbookUseCases: CashbookUs
                             lastEditTimeStamp = System.currentTimeMillis(),
                             createdDate = LocalDate.now()
                         )
-                        cashbookUseCases.addCashbook(cashbook)
+                        withContext(Dispatchers.IO){
+                            cashbookUseCases.addCashbook(cashbook)
+                        }
                     }catch (ex:InvalidCashbookException){
                         Log.e(TAG, ex.message.toString())
                     }
@@ -108,16 +122,20 @@ class CashbookListViewModel @Inject constructor(val cashbookUseCases: CashbookUs
 
             is CashbookListEvent.DeleteCashbook -> {
                 viewModelScope.launch {
-                    cashbookUseCases.deleteCashbook(event.cashbook)
-                    recentlyDeletedCashbook = event.cashbook
+                    withContext(Dispatchers.IO){
+                        cashbookUseCases.deleteCashbook(event.cashbook)
+                        recentlyDeletedCashbook = event.cashbook
+                    }
                 }
             }
 
             is CashbookListEvent.RestoreCashbook -> {
                 viewModelScope.launch {
                     recentlyDeletedCashbook?.let{
-                        cashbookUseCases.addCashbook(it)
-                        recentlyDeletedCashbook = null
+                        withContext(Dispatchers.IO){
+                            cashbookUseCases.addCashbook(it)
+                            recentlyDeletedCashbook = null
+                        }
                     }
                 }
             }
@@ -151,6 +169,13 @@ class CashbookListViewModel @Inject constructor(val cashbookUseCases: CashbookUs
                 cashbooks = cashbooks,
                 cashbookOrder = order
             )
-        }.launchIn(viewModelScope)
+        }.flowOn(Dispatchers.IO).launchIn(viewModelScope)
+    }
+
+    private suspend fun temp1(time:Long):Int{
+        Log.d("temp1", "Start time count for $time")
+        delay(time)
+        Log.d("temp1", "Print statement for $time")
+        return if(time == 1000L) 10 else 50
     }
 }

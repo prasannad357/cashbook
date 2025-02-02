@@ -42,9 +42,18 @@ class CashbookListViewModelTest() {
     val mainDispatcherRule = MainDispatcherRule()
 
     lateinit var cashbookUseCases:CashbookUseCases
+    lateinit var repeatTransactionsBook: Cashbook
 
     @Before
     fun setUp(){
+        repeatTransactionsBook = Cashbook(
+            name = "Repeat Transactions",
+            tags = emptyList(),
+            createdDate = LocalDate.now(),
+            createdTimeStamp = 1L,
+            lastEditTimeStamp = 2L,
+            id = 1
+        )
         cashbookUseCases = mockk()
     }
 
@@ -88,18 +97,9 @@ class CashbookListViewModelTest() {
 
     @Test
     fun repeatTransactionsBookPreexist_repeatTransactionsBookNotCreated() = runTest{
-        val cashbook = Cashbook(
-            name = "Repeat Transactions",
-            tags = emptyList(),
-            createdDate = LocalDate.now(),
-            createdTimeStamp = 1L,
-            lastEditTimeStamp = 2L,
-            id = 1
-        )
-
         coEvery {
             cashbookUseCases.getCashbooks(any())
-        }returns flow { emit(listOf(cashbook)) }
+        }returns flow { emit(listOf(repeatTransactionsBook)) }
         val sut = CashbookListViewModel(cashbookUseCases)
         coVerify(exactly = 0) {
             //Add cashbook should be called 0 times
@@ -127,5 +127,28 @@ class CashbookListViewModelTest() {
             //Repeat cashbook doesn't exist and app is being launched for the first time after installation
             //Creates repeat cashbook. Add cashbook is called only once
             sut.cashbookUseCases.addCashbook(any()) }
+    }
+
+    @Test
+    fun onEventAddCashbookName_updatesNameProperty(){
+        //i.e. only repeat transactions book exist so add cashbook is not called in init
+        coEvery { cashbookUseCases.getCashbooks(any()) } returns flow{emit(listOf(repeatTransactionsBook))}
+        val sut = CashbookListViewModel(cashbookUseCases)
+        sut.onEvent(CashbookListEvent.AddCashbookName("TestBook"))
+        Assert.assertEquals("TestBook", sut.name.value)
+    }
+
+    @Test
+    fun onEventAddCashbookTags_updatesTags(){
+        coEvery { cashbookUseCases.getCashbooks(any()) } returns flow{emit(listOf(repeatTransactionsBook))}
+        val sut = CashbookListViewModel(cashbookUseCases)
+
+        sut.onEvent(CashbookListEvent.AddCashbookTags(listOf("tag1", "tag2", "tag3")))
+        Assert.assertEquals(sut.tags.value, listOf("tag1", "tag2", "tag3"))
+    }
+
+    @Test
+    fun onEventAddCashbook_getsCashbook(){
+        coEvery {  }
     }
 }

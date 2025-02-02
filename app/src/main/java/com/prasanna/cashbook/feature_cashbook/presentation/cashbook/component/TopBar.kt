@@ -29,6 +29,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,6 +57,16 @@ import kotlinx.coroutines.launch
 @Composable
 fun TopBar(viewModel: CashbookViewModel, onBinClick:()->Unit){
     val scope = rememberCoroutineScope()
+    var cbName by remember {
+        mutableStateOf("")
+    }
+    var tags by remember {
+        mutableStateOf(emptyList<String>())
+    }
+
+    LaunchedEffect(key1 = viewModel.cashbookState.value.cbName) {
+        cbName = viewModel.cashbookState.value.cbName
+    }
 
     Column(modifier = Modifier
         .fillMaxWidth()) {
@@ -68,10 +79,10 @@ fun TopBar(viewModel: CashbookViewModel, onBinClick:()->Unit){
                     .weight(5f)
                     .padding(start = 20.dp, top = 10.dp)
             ) {
-                Text(text = viewModel.cashbookName.value, fontSize = 20.sp)
+                Text(text = cbName, fontSize = 20.sp)
             }
 
-            if(viewModel.cashbookName.value != "Repeat Transactions"){
+            if(cbName != "Repeat Transactions"){
                 IconButton(onClick = {
                     viewModel.onEvent(CashbookEvent.ToggleRepeatTransactionPopup)
                 }, modifier = Modifier.weight(2f),) {
@@ -98,12 +109,16 @@ fun TopBar(viewModel: CashbookViewModel, onBinClick:()->Unit){
             }
         }
 
+        LaunchedEffect(key1 = viewModel.cashbookState.value.cbTags) {
+            tags = viewModel.cashbookState.value.cbTags
+        }
+
         FlowRow(modifier = Modifier
             .padding(start = 20.dp, end = 20.dp)
             .padding(8.dp),
             verticalArrangement = Arrangement.SpaceAround
         ){
-            viewModel.cashbookTags.value.forEach{
+            tags.forEach{
                 if(it.isNotBlank()){
                     Text(text = it,
                         modifier = Modifier
