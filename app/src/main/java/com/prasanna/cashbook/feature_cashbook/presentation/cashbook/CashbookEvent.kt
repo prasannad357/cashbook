@@ -8,6 +8,7 @@ import java.time.LocalDate
 sealed class CashbookEvent {
     data class AddDate(val date: LocalDate):CashbookEvent()
     data class AddAmount(val amount:BigDecimal):CashbookEvent()
+    data class AddQuantity(val qty: Int):CashbookEvent()
     data class AddTags(val tags:List<String>):CashbookEvent() // Expense tags
     data class AddRemark(val remark:String):CashbookEvent()
     data class EditCashbookName(val name:String):CashbookEvent()

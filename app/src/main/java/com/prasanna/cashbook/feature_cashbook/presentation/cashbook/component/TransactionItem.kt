@@ -102,6 +102,11 @@ fun DisplayTransaction(transaction:Transaction, balance:BigDecimal, viewModel: C
                 textAlign = TextAlign.Right, fontWeight = FontWeight.Bold
                 )
             Spacer(modifier = Modifier.width(10.dp))
+            Text(text = transaction.quantity.toString(), color = color,
+                modifier = Modifier.weight(1f),
+                textAlign = TextAlign.Right, fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.width(10.dp))
             Text(text = balance.toString(), modifier = Modifier.weight(1f),
                 textAlign = TextAlign.Right
                 )

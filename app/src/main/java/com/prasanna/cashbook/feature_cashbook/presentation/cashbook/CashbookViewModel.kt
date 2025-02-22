@@ -29,6 +29,7 @@ import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.time.LocalDate
 import javax.inject.Inject
+import com.prasanna.cashbook.feature_cashbook.presentation.util.Constants.ONE_INT
 
 @RequiresApi(Build.VERSION_CODES.O)
 @HiltViewModel
@@ -40,14 +41,16 @@ class CashbookViewModel @Inject constructor(private val cashbookUseCases:Cashboo
     private val _cashbookState = mutableStateOf(CashbookState())
     val cashbookState:State<CashbookState> = _cashbookState
 
-    private val _balance = mutableStateOf(0.toBigDecimal()) //TODO: Remove after checking its use
-    var balance = _balance
+    private val _balance = mutableStateOf(0.toBigDecimal())
 
     private val _date = mutableStateOf<LocalDate>(LocalDate.now())
     val date: State<LocalDate> = _date
 
     private val _isCredit = mutableStateOf(false)
     var isCredit = _isCredit
+
+    private val _quantity = mutableIntStateOf(ONE_INT)
+    val quantity:State<Int> = _quantity
 
     private val _amount = mutableStateOf<BigDecimal>(0.toBigDecimal())
     val amount:State<BigDecimal> = _amount
@@ -75,9 +78,6 @@ class CashbookViewModel @Inject constructor(private val cashbookUseCases:Cashboo
 
     private val _transactionsInBin = mutableStateOf<List<Transaction>>(mutableListOf())
     val transactionsInBin:State<List<Transaction>> = _transactionsInBin
-
-    private val _toggleDeleteTopBar = mutableStateOf<List<Transaction>?>(null)
-    val toggleDeleteTopBar:State<List<Transaction>?> = _toggleDeleteTopBar
 
     private val _toggleRepeatTransactionsPopup = mutableStateOf(false)
     val toggleRepeatTransactionsPopup:State<Boolean> = _toggleRepeatTransactionsPopup
@@ -123,6 +123,11 @@ class CashbookViewModel @Inject constructor(private val cashbookUseCases:Cashboo
             is CashbookEvent.AddAmount -> {
                 _amount.value = event.amount
             }
+
+            is CashbookEvent.AddQuantity -> {
+                _quantity.intValue = event.qty
+            }
+
             is CashbookEvent.AddDate -> _date.value = event.date
             is CashbookEvent.AddRemark -> _remark.value = event.remark
             is CashbookEvent.AddTags -> _tags.value = event.tags
@@ -131,9 +136,14 @@ class CashbookViewModel @Inject constructor(private val cashbookUseCases:Cashboo
                 val transaction = Transaction(
                     id = event.transactionId,
                     date = _date.value,
-                    amount = _amount.value, isCredit = isCredit.value,
-                    createdAt = currentTime, updatedAt = currentTime,
-                    tags = _tags.value, remark = _remark.value, cashbookId = _id!!,
+                    amount = _amount.value,
+                    quantity = _quantity.intValue,
+                    isCredit = isCredit.value,
+                    createdAt = currentTime,
+                    updatedAt = currentTime,
+                    tags = _tags.value,
+                    remark = _remark.value,
+                    cashbookId = _id!!,
                     cashbookName = cashbookState.value.cbName)
                 viewModelScope.launch(Dispatchers.IO) {
                     cashbookUseCases.addTransaction(transaction)
