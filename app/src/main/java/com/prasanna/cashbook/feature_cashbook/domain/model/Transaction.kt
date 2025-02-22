@@ -3,6 +3,7 @@ package com.prasanna.cashbook.feature_cashbook.domain.model
 import androidx.room.Entity
 import androidx.room.OnConflictStrategy
 import androidx.room.PrimaryKey
+import com.prasanna.cashbook.feature_cashbook.presentation.util.Constants.ONE_INT
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -14,6 +15,7 @@ data class Transaction(
     val id:Int? = null,
     val date: LocalDate,
     val amount:BigDecimal,
+    val quantity: Int = ONE_INT,
     val isCredit:Boolean,
     val createdAt: Long, //System.currentTimeMillis() i.e. epoch time, can be easily compared
     val updatedAt:Long, //System.currentTimeMillis() i.e. epoch time, can be easily compared

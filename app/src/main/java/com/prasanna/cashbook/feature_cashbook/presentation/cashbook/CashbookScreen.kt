@@ -121,12 +121,13 @@ fun CashbookScreen(
                             var balance:BigDecimal = 0.toBigDecimal()
                             sortedTransactions.forEachIndexed { id, transaction ->
                                 Log.d(TAG, "CashbookScreen: transaction id:${transaction.id}")
+                                val total = transaction.amount.multiply(transaction.quantity.toBigDecimal())
                                 if(transaction.isCredit) {
-                                    Log.d(TAG, "CashbookScreen: Adding ${transaction.amount}")
-                                    balance += transaction.amount }
+                                    Log.d(TAG, "CashbookScreen: Adding ${total}")
+                                    balance += total }
                                 else {
-                                    Log.d(TAG, "CashbookScreen: Subtracting ${transaction.amount}")
-                                    balance -= transaction.amount}
+                                    Log.d(TAG, "CashbookScreen: Subtracting ${total}")
+                                    balance -= total}
                                 Log.d(TAG, "tid:$id balance: $balance")
 
                                 tidBalanceMap[id] = balance

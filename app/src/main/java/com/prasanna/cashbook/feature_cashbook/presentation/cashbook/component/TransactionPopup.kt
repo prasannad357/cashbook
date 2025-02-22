@@ -47,10 +47,11 @@ import androidx.compose.ui.window.PopupProperties
 import com.prasanna.cashbook.feature_cashbook.domain.model.Transaction
 import com.prasanna.cashbook.feature_cashbook.presentation.cashbook.CashbookEvent
 import com.prasanna.cashbook.feature_cashbook.presentation.cashbook.CashbookViewModel
+import com.prasanna.cashbook.feature_cashbook.presentation.util.Constants.EIGHT_DP
+import com.prasanna.cashbook.feature_cashbook.presentation.util.Constants.ONE_DP
 import java.time.LocalDate
 
 @RequiresApi(Build.VERSION_CODES.O)
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun TransactionPopup(viewModel: CashbookViewModel, transaction: Transaction? = null ){
     Popup(
@@ -78,9 +79,12 @@ fun TransactionPopup(viewModel: CashbookViewModel, transaction: Transaction? = n
                 initiateViewModel(viewModel, transaction)
             }
             CreditDebitChip(viewModel = viewModel, transaction = transaction)
+            TotalField()
+            Spacer(modifier = Modifier.height(ONE_DP))
             DateRow(viewModel = viewModel)
+            QuantityField()
             AmountRemarkFields(viewModel = viewModel)
-            TagsRow(viewModel = viewModel)
+//            TagsRow(viewModel = viewModel)
             SaveCancelRow(viewModel = viewModel, transaction = transaction)
         }
 

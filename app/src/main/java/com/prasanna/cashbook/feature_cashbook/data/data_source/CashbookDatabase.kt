@@ -10,7 +10,7 @@ import com.prasanna.cashbook.feature_cashbook.domain.model.Transaction
 
 @Database(
     entities = [Cashbook::class, Transaction::class],
-    version = 1
+    version = 2
 )
 @TypeConverters(DataConverter::class, LocalDateConverter::class)
 abstract class CashbookDatabase:RoomDatabase() {

@@ -154,7 +154,11 @@ fun TopBar(viewModel: CashbookViewModel, onBinClick:()->Unit){
                 textAlign = TextAlign.Right,
             )
             Spacer(modifier = Modifier.width(5.dp))
-            Text(text = "Balance", modifier = Modifier.weight(1f),
+            Text(text = "Qty",modifier = Modifier.weight(1f),
+                textAlign = TextAlign.Right,
+            )
+            Spacer(modifier = Modifier.width(5.dp))
+            Text(text = "Total", modifier = Modifier.weight(1f),
                 textAlign = TextAlign.Right,
             )
         }
